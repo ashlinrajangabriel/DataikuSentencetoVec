@@ -1,0 +1,151 @@
+#Recipe1
+# -*- coding: utf-8 -*-
+import dataiku
+import pandas as pd, numpy as np
+from dataiku import pandasutils as pdu
+
+# Read recipe inputs
+SentenceData = dataiku.Dataset("SentenceData")
+SentenceData_df = SentenceData.get_dataframe()
+CleansedData = dataiku.Folder("YEM8QpBl")
+CleansedData_info = CleansedData.get_info()
+
+
+# Compute recipe outputs from inputs
+# TODO: Replace this part by your actual code that computes the output, as a Pandas dataframe
+# NB: DSS also supports other kinds of APIs for reading and writing data. Please see doc.
+
+SentenceData_df = SentenceData_df # For this sample code, simply copy input to output
+
+
+# Write recipe outputs
+SentenceData = dataiku.Dataset("SentenceData")
+SentenceData.write_with_schema(SentenceData_df)
+
+
+###############################################Recipe2
+# -*- coding: utf-8 -*-
+import dataiku
+import pandas as pd, numpy as np
+from dataiku import pandasutils as pdu
+from gensim.models import Word2Vec
+from nltk import word_tokenize
+
+# Read recipe inputs
+SentenceData = dataiku.Dataset("SentenceData")
+SentenceData_df = SentenceData.get_dataframe()
+
+
+
+
+# Write recipe outputs
+ModelTrained = dataiku.Folder("cmKD2N5M")
+ModelTrained_info = ModelTrained.get_info()
+
+##################################################Recipe3
+
+# -*- coding: utf-8 -*-
+import dataiku
+import pandas as pd, numpy as np
+from dataiku import pandasutils as pdu
+
+
+import re
+import logging
+
+import nltk
+from nltk import word_tokenize
+from nltk.corpus import stopwords
+
+# Read recipe inputs
+SentenceData = dataiku.Dataset("SentenceData")
+SentenceData_df = SentenceData.get_dataframe()
+
+
+##Code goes here
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s',
+                    level=logging.INFO)
+
+# pre processing data
+def cleanData(sentence):
+    # convert to lowercase, ignore all special characters - keep only
+    # alpha-numericals and spaces
+    sentence = re.sub(r'[^A-Za-z0-9\s]', r'', str(sentence).lower())
+
+    # remove stop words
+    sentence = " ".join([word for word in sentence.split()
+                        if word not in stopwords.words('english')])
+    
+
+    return sentence
+
+
+df = SentenceData_df
+
+# drop duplicate rows
+df = df.drop_duplicates(subset='title')
+
+nltk.download("all")
+df['title'] = df['title'].map(lambda x: cleanData(x))
+
+# Write recipe outputs
+#base_64 = dataiku.Dataset("base_64")
+#df = base_64.get_dataframe()
+Folder = dataiku.Folder("YEM8QpBl")
+
+
+filename = "CleanDataForSentence2Vec.csv"
+Folder.upload_data(filename, df.to_csv(index=False).encode("utf-8"))
+
+#Sentence2Vec_CleansedData =  dataiku.Dataset("Sentence2Vec_CleansedData")
+#Sentence2Vec_CleansedData.write_with_schema(df)
+
+#Check output folder
+CleansedData_info = Folder.get_info()
+###################################################################################
+
+Recipe 4
+
+
+# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
+# -*- coding: utf-8 -*-
+import dataiku
+import pandas as pd, numpy as np
+from dataiku import pandasutils as pdu
+import gensim
+import nltk
+from gensim.models import Word2Vec
+from nltk import word_tokenize
+
+
+
+# Read recipe inputs
+CleansedData = dataiku.Folder("YEM8QpBl")
+CleansedData_info = CleansedData.get_info()
+Source_Path = dataiku.Folder("YEM8QpBl").get_Path()
+path_Of_CSV = os.path.join(folder_path, "CleanDataForSentence2Vec.csv") 
+df = pd.read_csv(path_of_csv)
+# get array of titles
+titles = df['title'].values.tolist()
+
+# tokenize the each title
+tok_titles = [word_tokenize(title) for title in titles]
+
+# refer to here for all parameters:
+# https://radimrehurek.com/gensim/models/word2vec.html
+model = Word2Vec(tok_titles, sg=1, size=100, window=5, min_count=5, workers=4,
+                 iter=100)
+
+
+#model.save('./data/job_titles.model')
+
+
+# Write recipe outputs
+Model = dataiku.Folder("rlACbXYw");
+path = Model.get_path();
+model.save(path/'job_titles.model')
+        
+        
+Model_info = Model.get_info()
+
+
