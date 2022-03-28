@@ -1,0 +1,28 @@
+import dataiku
+import pandas as pd
+from tabula.io import read_pdf
+
+# Read recipe inputs
+un_pdf_download = dataiku.Folder("un_pdf_download")
+
+# read in the pdf and use tabula-py to extract tabular data
+with un_pdf_download.get_download_stream("the_worlds_cities_in_2016_data_booklet.pdf") as stream:
+        tables = read_pdf(stream, pages = "12-26", multiple_tables = True)
+
+# parse the pdf tables
+for table in tables:
+        table.columns = table.iloc[0].values
+        table.dropna(inplace=True)
+        table.drop(table.index[0], inplace=True)
+
+# remove corrupted data
+tables.pop(2)
+
+# Write recipe outputs
+csvs = dataiku.Folder("un_csv")
+
+# write dataframes to csvs
+path = '/dataset_{}'
+
+for index, table in enumerate(tables):
+        csvs.upload_stream(path.format(index), table.to_csv().encode("utf-8"))
