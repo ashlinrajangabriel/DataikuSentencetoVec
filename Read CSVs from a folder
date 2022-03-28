@@ -1,0 +1,13 @@
+# -*- coding: utf-8 -*-
+import dataiku
+import pandas as pd, numpy as np
+from dataiku import pandasutils as pdu
+import os
+
+# Recipe inputs
+folder_path = dataiku.Folder("FuShmlsH").get_path()
+
+path_of_csv = os.path.join(folder_path, "dataset_01.csv") 
+
+my_dataset = pd.read_csv(path_of_csv)
+
